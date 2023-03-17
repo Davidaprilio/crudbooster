@@ -50,16 +50,14 @@ class CrudboosterInstallationCommand extends Command
             $this->info('Dumping the autoloaded files and reloading all new files...');
             $composer = $this->findComposer();
 
-            $process = (app()->version() >= 7.0)
-                ? new Process([$composer.' dumpautoload'])
-                : new Process($composer.' dumpautoload');
+            $process = new Process([$composer.' dumpautoload']);
 
             $process->setWorkingDirectory(base_path())->run();
 
             $this->info('Migrating database...');
 
             $this->call('migrate');
-            $this->call('db:seed', ['--class' => 'CBSeeder']);
+            $this->call('db:seed', ['--class' => 'crocodicstudio\crudbooster\database\seeds\CBSeeder']);
             $this->call('config:clear');
             if (app()->version() < 5.6) {
                 $this->call('optimize');
@@ -76,14 +74,14 @@ class CrudboosterInstallationCommand extends Command
 
     private function header()
     {
-        $this->info("
-#     __________  __  ______  ____                   __           
-#    / ____/ __ \/ / / / __ \/ __ )____  ____  _____/ /____  _____
-#   / /   / /_/ / / / / / / / __  / __ \/ __ \/ ___/ __/ _ \/ ___/
-#  / /___/ _, _/ /_/ / /_/ / /_/ / /_/ / /_/ (__  ) /_/  __/ /    
-#  \____/_/ |_|\____/_____/_____/\____/\____/____/\__/\___/_/     
-#                                                                                                                       
-			");
+        $this->info(implode("\n", [
+            '#     __________  __  ______  ____                   __           ',
+            '#    / ____/ __ \/ / / / __ \/ __ )____  ____  _____/ /____  _____',
+            '#   / /   / /_/ / / / / / / / __  / __ \/ __ \/ ___/ __/ _ \/ ___/',
+            '#  / /___/ _, _/ /_/ / /_/ / /_/ / /_/ / /_/ (__  ) /_/  __/ /    ',
+            '#  \____/_/ |_|\____/_____/_____/\____/\____/____/\__/\___/_/     ',
+            '#                                                              ',
+        ]));
         $this->info('--------- :===: Thanks for choosing CRUDBooster :==: ---------------');
         $this->info('====================================================================');
     }
