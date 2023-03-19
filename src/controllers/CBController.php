@@ -3,21 +3,21 @@
 error_reporting(E_ALL ^ E_NOTICE);
 
 
-use CB;
 use crocodicstudio\crudbooster\export\DefaultExportXls;
-use CRUDBooster;
+use crocodicstudio\crudbooster\helpers\CB;
+use crocodicstudio\crudbooster\helpers\CRUDBooster;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\PDF;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
-use Schema;
 
 class CBController extends Controller
 {
@@ -242,7 +242,7 @@ class CBController extends Controller
         $data['page_description'] = cbLang('default_module_description');
         $data['date_candidate'] = $this->date_candidate;
         $data['limit'] = $limit = (request('limit')) ? request('limit') : $this->limit;
-
+        dd($data);
         $tablePK = $data['table_pk'];
         $table_columns = CB::getTableColumns($this->table);
         $result = DB::table($this->table)->select(DB::raw($this->table.".".$this->primary_key));
@@ -522,7 +522,7 @@ class CBController extends Controller
         }
 
         $mainpath = CRUDBooster::mainpath();
-        $orig_mainpath = $this->data['mainpath'];
+        $orig_mainpath = $mainpath;
         $title_field = $this->title_field;
         $html_contents = [];
         $page = (request('page')) ? request('page') : 1;
@@ -539,7 +539,7 @@ class CBController extends Controller
                 $html_content[] = $number.'. ';
                 $number++;
             }
-
+            dd($columns_table);
             foreach ($columns_table as $col) {
                 if ($col['visible'] === false) {
                     continue;
@@ -569,7 +569,7 @@ class CBController extends Controller
 
                 if ($col['str_limit']) {
                     $value = trim(strip_tags($value));
-                    $value = str_limit($value, $col['str_limit']);
+                    $value = Str::limit($value, $col['str_limit']);
                 }
 
                 if ($col['nl2br']) {
@@ -975,7 +975,7 @@ class CBController extends Controller
                     'message' => cbLang('alert_validation_error', ['error' => implode(', ', $message_all)]),
                     'message_type' => 'warning',
                 ])->withInput();
-                \Session::driver()->save();
+                Session::driver()->save();
                 $res->send();
                 exit;
             }

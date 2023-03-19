@@ -9,6 +9,7 @@
 |
 */
 
+use Illuminate\Support\Facades\Storage;
 
 if(!function_exists('ends_with')) {
     /**

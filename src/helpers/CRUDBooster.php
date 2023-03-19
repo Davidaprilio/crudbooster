@@ -2,15 +2,18 @@
 
 namespace crocodicstudio\crudbooster\helpers;
 
-use Cache;
-use DB;
+use Exception;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Image;
-use Request;
-use Route;
-use Schema;
-use Session;
-use Storage;
-use Validator;
 
 class CRUDBooster
 {
@@ -623,11 +626,15 @@ class CRUDBooster
             return Cache::get('field_type_'.$table.'_'.$field);
         }
 
+        dd(
+            $table,
+            $field
+        );
         $typedata = Cache::rememberForever('field_type_'.$table.'_'.$field, function () use ($table, $field) {
 
             try {
                 //MySQL & SQL Server
-                $typedata = DB::select(DB::raw("select DATA_TYPE from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='$table' and COLUMN_NAME = '$field'"))[0]->DATA_TYPE;
+                $typedata = DB::select("select DATA_TYPE from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='$table' and COLUMN_NAME = '$field'")[0]->DATA_TYPE;
             } catch (\Exception $e) {
 
             }
@@ -718,11 +725,11 @@ class CRUDBooster
 
     public static function sendEmailQueue($queue)
     {
-        \Config::set('mail.driver', self::getSetting('smtp_driver'));
-        \Config::set('mail.host', self::getSetting('smtp_host'));
-        \Config::set('mail.port', self::getSetting('smtp_port'));
-        \Config::set('mail.username', self::getSetting('smtp_username'));
-        \Config::set('mail.password', self::getSetting('smtp_password'));
+        Config::set('mail.driver', self::getSetting('smtp_driver'));
+        Config::set('mail.host', self::getSetting('smtp_host'));
+        Config::set('mail.port', self::getSetting('smtp_port'));
+        Config::set('mail.username', self::getSetting('smtp_username'));
+        Config::set('mail.password', self::getSetting('smtp_password'));
 
         $html = $queue->email_content;
         $to = $queue->email_recipient;
@@ -732,7 +739,7 @@ class CRUDBooster
         $cc_email = $queue->email_cc_email;
         $attachments = unserialize($queue->email_attachments);
 
-        \Mail::send("crudbooster::emails.blank", ['content' => $html], function ($message) use (
+        Mail::send("crudbooster::emails.blank", ['content' => $html], function ($message) use (
             $html,
             $to,
             $subject,
@@ -759,11 +766,11 @@ class CRUDBooster
     public static function sendEmail($config = [])
     {
 
-        \Config::set('mail.driver', self::getSetting('smtp_driver'));
-        \Config::set('mail.host', self::getSetting('smtp_host'));
-        \Config::set('mail.port', self::getSetting('smtp_port'));
-        \Config::set('mail.username', self::getSetting('smtp_username'));
-        \Config::set('mail.password', self::getSetting('smtp_password'));
+        Config::set('mail.driver', self::getSetting('smtp_driver'));
+        Config::set('mail.host', self::getSetting('smtp_host'));
+        Config::set('mail.port', self::getSetting('smtp_port'));
+        Config::set('mail.username', self::getSetting('smtp_username'));
+        Config::set('mail.password', self::getSetting('smtp_password'));
 
         $to = $config['to'];
         $data = $config['data'];
@@ -794,7 +801,7 @@ class CRUDBooster
             return true;
         }
 
-        \Mail::send("crudbooster::emails.blank", ['content' => $html], function ($message) use ($to, $subject, $template, $attachments) {
+        Mail::send("crudbooster::emails.blank", ['content' => $html], function ($message) use ($to, $subject, $template, $attachments) {
             $message->priority(1);
             $message->to($to);
 
@@ -843,7 +850,7 @@ class CRUDBooster
                 exit;
             } else {
                 $res = redirect()->back()->with(['message' => implode('<br/>', $message), 'message_type' => 'warning'])->withInput();
-                \Session::driver()->save();
+                Session::driver()->save();
                 $res->send();
                 exit;
             }
@@ -1899,12 +1906,12 @@ class CRUDBooster
 
         try {
             Route::get($prefix, ['uses' => $controller.'@getIndex', 'as' => $controller.'GetIndex']);
-
+            
             $controller_class = new \ReflectionClass($namespace.'\\'.$controller);
             $controller_methods = $controller_class->getMethods(\ReflectionMethod::IS_PUBLIC);
             $wildcards = '/{one?}/{two?}/{three?}/{four?}/{five?}';
             foreach ($controller_methods as $method) {
-
+              
                 if ($method->class != 'Illuminate\Routing\Controller' && $method->name != 'getIndex') {
                     if (substr($method->name, 0, 3) == 'get') {
                         $method_name = substr($method->name, 3);

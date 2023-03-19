@@ -28,12 +28,10 @@
     <link rel='stylesheet' href='{{asset("vendor/crudbooster/assets/css/main.css") }}'/>
 
     <!-- load css -->
-    <style type="text/css">
-        @if($style_css)
-            {!! $style_css !!}
-        @endif
-    </style>
-    @if($load_css)
+    @isset($style_css)
+    <style type="text/css">{!! $style_css !!}</style>
+    @endisset
+    @isset($load_css)
         @foreach($load_css as $css)
             <link href="{{$css}}" rel="stylesheet" type="text/css"/>
         @endforeach
@@ -86,7 +84,12 @@
 
     @stack('head')
 </head>
-<body class="@php echo (Session::get('theme_color'))?:'skin-blue'; echo ' '; echo config('crudbooster.ADMIN_LAYOUT'); @endphp {{($sidebar_mode)?:''}}">
+<body @class([
+    Session::get('theme_color') ?: 'skin-blue',
+    config('crudbooster.ADMIN_LAYOUT'), 
+    $sidebar_mode ?? ''
+])>
+
 <div id='app' class="wrapper">
 
     <!-- Header -->
